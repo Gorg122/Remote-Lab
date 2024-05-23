@@ -455,7 +455,7 @@ def sub_main(service, root_path, GLOBAL_PC_ID):
         GUI.print_log("--- %s seconds ---" % (time.time() - start_time_in_sec))
         while GUI.flag_stop:
             time.sleep(1)
-        time.sleep(20)
+        time.sleep(60)
 
 def Find_files_by_name(dir_path, filename):
     for root, dirs, files in os.walk(dir_path):  # В цикле проходим все папки и файлы в корневой папке

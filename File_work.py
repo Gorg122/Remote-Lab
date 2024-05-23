@@ -8,7 +8,7 @@ import subprocess
 import configparser
 import pprint
 # import win32com.client
-#import win32com.client as client
+# import win32com.client as client
 import stat
 from datetime import date
 from dateutil import parser
@@ -30,25 +30,26 @@ global pr_type
 pr_type = 2
 
 
-
 # Функция поиска файла сценария пользователя
 
 def Find_files_by_name(dir_path, filename):
     for root, dirs, files in os.walk(dir_path):  # В цикле проходим все папки и файлы в корневой папке
-        if filename in files:   # Производим поиск по названию файла
+        if filename in files:  # Производим поиск по названию файла
             filepath = root + '/' + filename  # Добавляем в путь папки и необходимый файл
             return filepath
     print("Такого файла нет")
     return 0
 
+
 def Find_files_by_ext(dir_path, file_ext):
     for root, dirs, files in os.walk(dir_path):  # В цикле проходим все папки и файлы в корневой папке
         for file in files:
-            if file.endswith(file_ext):     # Производим поиск по расширению файла
+            if file.endswith(file_ext):  # Производим поиск по расширению файла
                 filepath = root + '/' + file  # Добавляем в путь папки и необходимый файл
                 return filepath
     print("Такого файла нет")
     return 0
+
 
 def Script_file_detect(User_path_to_file, root_path, errs_path):
     print(root_path)
@@ -66,6 +67,8 @@ def Script_file_detect(User_path_to_file, root_path, errs_path):
                         and not (file.endswith("Compil_result.txt")) \
                         and not (file.endswith("errors.txt")) \
                         and not (file.endswith("video_timing.txt")) \
+                        and not (file.endswith("requirements.txt")) \
+                        and not (file.endswith("gitignore.txt")) \
                         and not (root == "db"):
                     script_file_name = file
                     script_file_path = root + '/' + script_file_name
@@ -81,71 +84,59 @@ def Script_file_detect(User_path_to_file, root_path, errs_path):
         errors_file.close()
         return (script_file_path, script_file_name)
 
+
 # Словарь текущих состояний переключателей
 switches = dict([(1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0)])
+
+
 # Скрипт передачи управляющих команд на плату Ардуино
 def Serial_delivery(arduino, cur_action, curent_pin, sleep, sleep_dur):
     global switches
     # Распознаем текущую команду
     if cur_action:
-        # Проверяем текущее состояние переключателя
-        print("Curent_pin = ", curent_pin)
-        print("Curent_pin_status = ", switches[int(curent_pin)])
-        if switches[int(curent_pin)] == 0:
-            comand_sw1 = str(curent_pin) + "H"
-            arduino.write(bytes(comand_sw1, 'utf-8'))
-            print("SW - {} - H".format(curent_pin))
-            switches[int(curent_pin)] = 1
+        try:
+            # Проверяем текущее состояние переключателя
+            print("Curent_pin = ", curent_pin)
+            print("Curent_pin_status = ", switches[int(curent_pin)])
+            if switches[int(curent_pin)] == 0:
+                comand_sw1 = str(curent_pin) + "H"
+                arduino.write(bytes(comand_sw1, 'utf-8'))
+                print("SW - {} - H".format(curent_pin))
+                switches[int(curent_pin)] = 1
 
-        else:# switches[int(curent_pin)] == 1:
-            comand_sw2 = str(curent_pin) + "L"
-            print("SW - {} - L".format(curent_pin))
-            arduino.write(bytes(comand_sw2, 'utf-8'))
-            switches[int(curent_pin)] = 0
-        #arduino.write(bytes(comand_sw1, 'utf-8'))
-        time.sleep(1)
-        # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
-        data = str(arduino.readline().decode().strip('\r\n'))
-        time.sleep(1)
-        print(data, '\n')
-        GUI.print_log("Номер пина распознанный на плате ", data)
-        # Изменяем состояние данного переключателя в словаре на текущее
-        if sleep:
-            print("sleep for ", sleep_dur)
-            GUI.print_log("sleep for ", sleep_dur)
-            time.sleep(sleep_dur)
-            print("sleep is over")
-            GUI.print_log("sleep is over")
-
+            else:  # switches[int(curent_pin)] == 1:
+                comand_sw2 = str(curent_pin) + "L"
+                print("SW - {} - L".format(curent_pin))
+                arduino.write(bytes(comand_sw2, 'utf-8'))
+                switches[int(curent_pin)] = 0
+            # arduino.write(bytes(comand_sw1, 'utf-8'))
+            time.sleep(1)
+            # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
+            data = str(arduino.readline().decode().strip('\r\n'))
+            time.sleep(1)
+            print(data, '\n')
+            GUI.print_log("Номер пина распознанный на плате ", data)
+            # Изменяем состояние данного переключателя в словаре на текущее
+            if sleep:
+                print("sleep for ", sleep_dur)
+                GUI.print_log("sleep for ", sleep_dur)
+                time.sleep(sleep_dur)
+                print("sleep is over")
+                GUI.print_log("sleep is over")
+        except:
+            print("Неверно указанный пин переключателя  ")
     else:
-        comand_but1 = str(curent_pin) + "H"
-        arduino.write(bytes(comand_but1, 'utf-8'))
-        print("BT - {} - H".format(curent_pin))
-        time.sleep(1)
-        # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
-        data = str(arduino.readline().decode().strip('\r\n'))
-        time.sleep(1)
-        print(data, '\n')
-        GUI.print_log("Номер пина распознанный на плате ", data)
+        try:
+            comand_but1 = str(curent_pin) + "H"
+            arduino.write(bytes(comand_but1, 'utf-8'))
+            print("BT - {} - H".format(curent_pin))
+            time.sleep(1)
+            # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
+            data = str(arduino.readline().decode().strip('\r\n'))
+            time.sleep(1)
+            print(data, '\n')
+            GUI.print_log("Номер пина распознанный на плате ", data)
 
-        comand_but2 = str(curent_pin) + "L"
-        arduino.write(bytes(comand_but2, 'utf-8'))
-        print("BT - {} - L".format(curent_pin))
-        time.sleep(1)
-        # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
-        data = str(arduino.readline().decode().strip('\r\n'))
-        time.sleep(1)
-        print(data, '\n')
-        GUI.print_log("Номер пина распознанный на плате ", data)
-        # Запускаем процесс ожидания задержки, указанной пользователем
-        if sleep:
-            print("sleep for ", sleep_dur)
-            GUI.print_log("sleep for ", sleep_dur)
-            time.sleep(sleep_dur)
-            print("sleep is over")
-            GUI.print_log("sleep is over")
-
-            # Передаем сигнал о необходимости перевести в неактивное положение необходимую кнопку
             comand_but2 = str(curent_pin) + "L"
             arduino.write(bytes(comand_but2, 'utf-8'))
             print("BT - {} - L".format(curent_pin))
@@ -155,7 +146,28 @@ def Serial_delivery(arduino, cur_action, curent_pin, sleep, sleep_dur):
             time.sleep(1)
             print(data, '\n')
             GUI.print_log("Номер пина распознанный на плате ", data)
+            # Запускаем процесс ожидания задержки, указанной пользователем
+            if sleep:
+                print("sleep for ", sleep_dur)
+                GUI.print_log("sleep for ", sleep_dur)
+                time.sleep(sleep_dur)
+                print("sleep is over")
+                GUI.print_log("sleep is over")
+
+                # Передаем сигнал о необходимости перевести в неактивное положение необходимую кнопку
+                comand_but2 = str(curent_pin) + "L"
+                arduino.write(bytes(comand_but2, 'utf-8'))
+                print("BT - {} - L".format(curent_pin))
+                time.sleep(1)
+                # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
+                data = str(arduino.readline().decode().strip('\r\n'))
+                time.sleep(1)
+                print(data, '\n')
+                GUI.print_log("Номер пина распознанный на плате ", data)
+        except:
+            print("Неверно указан номер кнопки")
     return switches
+
 
 def Arduino_Serial(script_file_path, errs_path, Arduino_port):
     # Открываем файл сценария
@@ -218,6 +230,7 @@ def Arduino_Serial(script_file_path, errs_path, Arduino_port):
     for i in range(strings):
         wrong_delay = 0
         end_of_file = 0
+        now_slip = 1
         sleep_dur = 0
         # Поиск численного значения в строке
         num = re.findall(r'\d+', str(lines[i]))
@@ -232,20 +245,18 @@ def Arduino_Serial(script_file_path, errs_path, Arduino_port):
         # Определяем текущее действие (нажаите кнопки или нажатие переключателя)
         for j in range(len(but)):
             if (lines[i].count(but[j])):
-                cur_action = 0      # Текущей командой является нажатие кнопки
+                cur_action = 0  # Текущей командой является нажатие кнопки
             elif (lines[i].count(sw[j])):
-                cur_action = 1      # Текущеу командой является переключение переключателя
+                cur_action = 1  # Текущеу командой является переключение переключателя
         if (lines[i].count(end[0])):
             end_of_file = 1
         # Определяем наличие задержки по времени к данному действию
-        if not(end_of_file):
+        if not (end_of_file):
             if (lines[i + 1].count(delay[0])) and (cur_action != 2):
                 sleep = 1
                 sleep_num = re.findall(r'\d+', str(lines[i + 1]))
-                #i = i + 1
                 for item in sleep_num:
                     sleep_dur += int(item)
-
                 # Обработка ошибки слишком большой длительности записи видео (с указанием конкретной строки)
                 if sleep_dur > 30:
                     delay_string = i + 1
@@ -256,46 +267,49 @@ def Arduino_Serial(script_file_path, errs_path, Arduino_port):
         if lines[i] != "\n" and lines[i] != "":
             print(numbers)
             GUI.print_log("Номер текущего пина ", numbers)
-            if (sleep != 1) and (cur_action != 2):
+            # if (sleep != 1) and (cur_action != 2):
 
-                # Если номер кнопки или переключателя больше 8 или меньше 1, данная команда не обрабатывается
-                if (int(numbers) > 8) or (int(numbers) < 1):
-                    i += 1
-                    false_pin = True
+            # Если номер кнопки или переключателя больше 8 или меньше 1, данная команда не обрабатывается
+            if ((int(numbers) > 8) or (int(numbers) < 1)) and (now_slip != 1):
 
-                    # Запись ошибки невверно указанного номера пина (с указанием конкретной строки)
-                    errors_file.write("Количество активных пинов равно 9 (строка " + str(i) + ")\n")
-                    print("Неверно указан номер пина\n")
-                    GUI.print_log("Неправильно указан номер пина")
+                false_pin = True
+                print("Указан неверный пин")
+                if int(numbers) > 7:
+                    errors_file.write("Указан пин большей разрядности (строка " + str(i) + ")\n")
+                elif int(numbers) < 0:
+                    errors_file.write("Указан пин меньшей разрядности (строка " + str(i) + ")\n")
+                i += 1
+                # Запись ошибки невверно указанного номера пина (с указанием конкретной строки)
+                # errors_file.write("Количество активных пинов равно 8 (строка " + str(i) + ")\n")
+                # print("Неверно указан номер пина\n")
+                # GUI.print_log("Неправильно указан номер пина")
         # Если строка пустая, пропускаем её
-        if (lines[i] == "\n"):
+        if (lines[i] == "\n" and not (lines[i + 1].count(end[0]))):
             i += 1
-
         # В случае, если номер пина введен верно, и строка не является пустой, начинаем обработку команды
         elif (false_pin == False):
-
             # Обработка команд управления
             # Обработка нажатия переключателя
             if (cur_action == 1):
                 # Проверяем данную команду на предмет установленных задержек
-                if (sleep) and (not(wrong_delay)):
+                if (sleep) and (not (wrong_delay)):
                     # Запускаем функцию передачи управляющего сигнала на плату Arduino
-                    switches=Serial_delivery(arduino, 1, num[0], 1, sleep_dur)
+                    switches = Serial_delivery(arduino, 1, num[0], 1, sleep_dur)
                     current_commands += 1
                     i += 1
                     num[0] = 0
-                if not(lines[i].count(delay[0])):
-                    switches=Serial_delivery(arduino, 1, num[0], 0, 0)
+                if not (lines[i].count(delay[0])):
+                    switches = Serial_delivery(arduino, 1, num[0], 0, 0)
                     current_commands += 1
 
             # Обработка нажатия кнопки
             elif (cur_action == 0):
                 # Проверяем данную команду на предмет установленных задержек
-                if sleep and (not(wrong_delay)):
-                    switches=Serial_delivery(arduino, 0, num[0], 1, sleep_dur)
+                if sleep and (not (wrong_delay)):
+                    switches = Serial_delivery(arduino, 0, num[0], 1, sleep_dur)
                     current_commands += 1
                 else:
-                    switches=Serial_delivery(arduino, 0, num[0], 0, 0)
+                    switches = Serial_delivery(arduino, 0, num[0], 0, 0)
                     current_commands += 1
 
             # Определяем ключ окончания обработки файла сценария
@@ -326,6 +340,7 @@ def File_empty_chek(users_dir, file_name):
             file_r.close()
             # print(chek_file, '\n')
     return chek_file, file_name
+
 
 # Функция копирования и удаления основных файлов пользователя после завершения процесса обработки сценария
 def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_file_name, script_file_name,
@@ -423,15 +438,8 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
         time.sleep(3)
         os.remove(sof_path)
 
-    # for root, dirs, files in os.walk(users_dir):
-    #     for dir in dirs:
-    #         if dir != "Report":
-    #             os.chmod(root + '/' + dir, stat.S_IWRITE)
-    #             os.remove(root + '/' + dir)
-    # print(vid_chek, '\n')
     i = 0
-    video_path = root_path + "/video/output.mp4"
-    video_dir = root_path + "/video"
+    video_path = root_path + "/video/video.mp4"
     copy_dst = root_path + "/" + User_path_to_file + "/Report/output.mp4"
     vid_exists = True
     # Производим проверку окончания записи видео
@@ -469,6 +477,7 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
             i += 1
     return "OK"
 
+
 # Функция удаления ненужных файлов после окончания обработки прошивки пользователя
 
 def Files_to_archive(path_to_dir, user_name, for_delivery, users_dir):
@@ -487,6 +496,7 @@ def Files_to_archive(path_to_dir, user_name, for_delivery, users_dir):
         os.makedirs(new_path)
         os.chdir(new_path)
         shutil.make_archive("result", 'zip', users_dir)
+
 
 def Delete_files(root_path, User_path_to_file):
     users_dir = root_path + '/' + User_path_to_file
@@ -661,7 +671,7 @@ def File_deleting(folder):
                     metadata = ['Name', 'Size', 'Item type', 'Date modified', 'Date created']
                     try:
                         file_metadata = get_file_metadata(root, filename, metadata)
-                        #Метаданные архива
+                        # Метаданные архива
                         # print(file_metadata)
                         date_modify = file_metadata['Date modified']
                     except:
@@ -826,7 +836,7 @@ def Launch(User_path_to_file, root_path):
 
             # Запускаем функцию записи видео
             video_script_path = root_path + '/' + "Video.py"
-            #python_path = "C:/Users/grish/AppData/Local/Programs/Python/Python38/python.exe"
+            # python_path = "C:/Users/grish/AppData/Local/Programs/Python/Python38/python.exe"
             print("---------------------------------------------------------------------------------------------------")
             print("PYTHON _PATH = ", python_path)
             print("VIDEO_SCRIPT_PATH = ", video_script_path)
@@ -879,7 +889,7 @@ def Launch(User_path_to_file, root_path):
         sof_name = "#"
 
     # Запускаем функцию копирования файлов отчетности
-    if not(User_path_to_file == ""):
+    if not (User_path_to_file == ""):
         file_work = File_switch(User_path_to_file=User_path_to_file, root_path=root_path,
                                 sof_path=sof_path, script_file_path=script_file_path,
                                 sof_file_name=sof_file_name,
@@ -897,23 +907,27 @@ def Launch(User_path_to_file, root_path):
         GUI.print_log("Результат очистки архива = ", file_delete)
         pp = pprint.PrettyPrinter(indent=4)
 
-    # Указание адреса авторизации
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-
-    # Проверяем наличие файла токена
-    token_name = 'ul_cad_1.json'
-    token_path = root_path + '/' + token_name
-    if not (os.path.exists(token_path)):
-        for root, dirs, files in os.walk('C:/'):
-            if files.find(token) != -1:
-                token_path = root + '/' + files
-    elif os.path.exists(token_path):
-        SERVICE_ACCOUNT_FILE = token_path
-
-        # Подключаемся к соответствующему сервису с помощью сервисного аккаунта Google
+        # Указание адреса авторизации
+        # SCOPES = ['https://www.googleapis.com/auth/drive']
+        #
+        # # Проверяем наличие файла токена
+        # token_name = 'ul_cad_1.json'
+        # token_path = root_path + '/' + token_name
+        # if not (os.path.exists(token_path)):
+        #     for root, dirs, files in os.walk('C:/'):
+        #         if files.find(token) != -1:
+        #             token_path = root + '/' + files
+        # elif os.path.exists(token_path):
+        #     SERVICE_ACCOUNT_FILE = token_path
+        #
+        #     # Подключаемся к соответствующему сервису с помощью сервисного аккаунта Google
+        #     credentials = service_account.Credentials.from_service_account_file(
+        #         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        #     service = build('drive', 'v3', credentials=credentials, static_discovery=False)
         credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        service = build('drive', 'v3', credentials=credentials, static_discovery=False)
+            'C:/Project_930/Project_main/ulcad930-77c72048684c.json', scopes=[
+                'https://www.googleapis.com/auth/drive'])
+        service = build("drive", "v3", credentials=credentials)
 
         # Запускаем функцию определения главной папки
         main_folder_id = Get_main_folder_id(service=service)
@@ -926,7 +940,7 @@ def Launch(User_path_to_file, root_path):
         upload_file = True
         # Запускаем процесс загрузки файлов до положительного исхода
         while upload_file:
-            #try:
+            # try:
             # Запускаем функцию создания папки пользователя
             folder_id = Folder_create(service=service, Users_drive=mail_name, main_folder_id=main_folder_id)
             print("Id текущей папки = ", folder_id)
@@ -966,8 +980,8 @@ def Launch(User_path_to_file, root_path):
                 print("Ссылка на файл = ", file_link)
                 GUI.print_log("Ссылка на файл = ", file_link)
                 upload_file = False
-            delete_chek = Old_files_delete(main_folder_id, service)
-            print(delete_chek)
+            # delete_chek = Old_files_delete(main_folder_id, service)
+            # print(delete_chek)
             upload_file = False
             # except:
             #     print("Неудача при загрузке файлов на Google Drive")
