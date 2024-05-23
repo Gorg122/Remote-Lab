@@ -14,8 +14,10 @@ def send_email(addr_to, msg_subj, msg_text, files, URL, errors_):
     # password = "98199Pet"  # Пароль
     #addr_from = "sasha.lorens@yandex.ru"  # Отправитель
     #password = "LeNoVo_13572468"  # Пароль
-    addr_from = "Desorder2881488@yandex.ru"  # Отправитель
-    password = "zzdxdavsvdytpuda"  # Пароль
+    #addr_from = "Desorder2881488@yandex.ru"  # Отправитель
+    #password = "zzdxdavsvdytpuda"  # Пароль
+    addr_from = "labremote@yandex.ru"
+    password = "lkxdesshgvpmpuem"
     # password = "LeNoVo_13572468"  # Пароль
     # URL = "https://drive.google.com/file/d/144XRAchdf6dioH13NK2FEkoVUwvss-zZ/view?usp=sharing"
     msg = MIMEMultipart()  # Создаем сообщение
