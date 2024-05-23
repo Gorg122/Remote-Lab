@@ -6,8 +6,19 @@ from datetime import date
 from dateutil import parser
 
 # Функция получения id главной папки
-import GUI
+# import GUI
 
+def get_credentials():
+    credentials = service_account.Credentials.from_service_account_file('ulcad930-77c72048684c.json', scopes=[
+        'https://www.googleapis.com/auth/drive'])
+    return credentials
+def main():
+    credentials = get_credentials()
+    # http = credentials.authorize(httplib2.Http())
+    print("TG")
+    # service = build("drive", "v3", http=http, static_discovery=False)
+    service = build("drive", "v3", credentials=credentials)
+    return service
 
 def Get_main_folder_id(service):
     # Производим поиск среди папок по названию
@@ -61,7 +72,7 @@ def Folder_create(service, Users_drive, main_folder_id):
 def File_upload(service, folder_id, file_path):
     # folder_id = '1PSD7Dutt6TIJqFmlM902oW70mFPy6pPH'
     # Задаем метаданные архива файлов пользователя
-    name = 'rezult.zip'
+    name = 'result.zip'
     file_metadata = {
         'name': name,
         'mimeType': 'application/octet-stream',
@@ -92,23 +103,26 @@ def Old_files_delete(main_folder_id, service):
     files_deleted = 0
     # Выводим 30 очередных папок в главной папке
     results = service.files().list(
-        pageSize=30,
+        pageSize=300,
         fields="files(id, name, mimeType, parents, createdTime)",
         q="parents='" + main_folder_id + "' and mimeType='application/vnd.google-apps.folder'").execute()
 
     #pp.pprint(results['files'])
     # Получаем id данных папок
     file_info = results['files']
+    print(file_info)
     folder_id = [item['id'] for item in file_info]
-    #print(folder_id)
+    print(folder_id)
     # Получаем текущую дату
     today = date.today()
     # Получаем дату создания данных папок
     createdTime = [item['createdTime'] for item in file_info]
     print(createdTime)
     delete = 0
+    # service.files().delete(fileId='18Ukqgm21LnpExQB9tqJTEBIB2bA5pxU9').execute()
     # Проходим по списку полученных папок
     for item in range(len(createdTime)):
+        # service.files().delete(fileId='{}'.format(folder_id[item])).execute()
         # Получаем дату создания данной папки
         create_date = "".join(createdTime[item])
         # Обрезаем дату создания данной папки до дней
@@ -144,6 +158,17 @@ def Old_files_delete(main_folder_id, service):
                 return 1
     if files_deleted > 0:
         print("Всего файлов удалено = ", files_deleted)
-        GUI.print_log("Всего файлов удалено = ", files_deleted)
+        # GUI.print_log("Всего файлов удалено = ", files_deleted)
     if delete == 0:
         return 0
+if __name__ == '__main__':
+    file_path = "C:/Users/grish_x7ho14t/Documents/Учеба/ВКР/New_code/Remote_stand/example.zip"
+    get_credentials()
+    service = main()
+    main_folder = Get_main_folder_id(service)
+    delete = Old_files_delete(main_folder, service)
+    file = File_upload(service, main_folder, file_path)
+    print(file)
+    print(main_folder)
+    print(delete)
+    service.files().delete(fileId='18Ukqgm21LnpExQB9tqJTEBIB2bA5pxU9').execute()

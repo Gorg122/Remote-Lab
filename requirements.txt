@@ -1,0 +1,5 @@
+python-dateutil==2.8.2
+google==3.0.0
+httplib2==0.22.0
+requests==2.31.0
+google-api-python-client==2.113.0
